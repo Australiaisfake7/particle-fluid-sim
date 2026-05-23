@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include <fstream>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -6,6 +8,52 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
+using std::string;
+
+#pragma region Helpers
+
+string readFile(const char* path)
+{
+    std::ifstream file(path);
+    if (!file.is_open())
+        return "";
+
+    string buffer{std::istreambuf_iterator<char>(file), {}};
+    return buffer;
+}
+
+unsigned int createShader(const char* source, GLenum shaderType)
+{
+    unsigned int shader;
+    shader = glCreateShader(shaderType);
+
+    glShaderSource(shader, 1, &source, NULL);
+    return shader;
+}
+
+unsigned int createShaderProgram(const unsigned int* shaders, const unsigned int count)
+{
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+
+    for (int i = 0; i < count; i++)
+    {
+        glAttachShader(shaderProgram, *(shaders + i));
+    }
+    glLinkProgram(shaderProgram);
+    return shaderProgram;
+}
+
+void deleteShaders(const unsigned int* shaders, const unsigned int count)
+{
+    for (int i = 0; i < count; i++)
+    {
+        glDeleteShader(*(shaders + i));
+    }
+}
+
+#pragma endregion Helpers
 
 void ProcessInput(GLFWwindow* window)
 {
@@ -53,6 +101,18 @@ int main()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
+
+    string vertexShaderSource = readFile("shaders/passthrough.vert");
+    string fragmentShaderSource = readFile("shaders/fluid.frag");
+
+    unsigned int vertexShader = createShader(vertexShaderSource.c_str(), GL_VERTEX_SHADER);
+    unsigned int fragmentShader = createShader(fragmentShaderSource.c_str(), GL_FRAGMENT_SHADER);
+
+    unsigned int shaders[] = {vertexShader, fragmentShader};
+
+    unsigned int shaderProgram = createShaderProgram(shaders, sizeof(shaders) / sizeof(unsigned int));
+
+    deleteShaders(shaders, sizeof(shaders) / sizeof(unsigned int));
 
     // This is the render loop
     while (!glfwWindowShouldClose(window))
