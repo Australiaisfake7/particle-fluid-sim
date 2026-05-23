@@ -11,6 +11,15 @@
 
 using std::string;
 
+float vertices[] = {
+    -1.0f, 1.0f,
+    -1.0f, -1.0f,
+    1.0f, 1.0f,
+    -1.0f, -1.0f,
+    1.0f, 1.0f,
+    1.0f, -1.0f
+};
+
 #pragma region Helpers
 
 string readFile(const char* path)
@@ -114,6 +123,22 @@ int main()
 
     deleteShaders(shaders, sizeof(shaders) / sizeof(unsigned int));
 
+    unsigned int VAO, VBO;
+
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     // This is the render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -125,6 +150,12 @@ int main()
 
         glClearColor(1.00f, 0.49f, 0.04f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(shaderProgram);
+
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
 
         ImGui::Begin("Test Window");
         ImGui::Text("Debug Text");
