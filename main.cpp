@@ -25,8 +25,11 @@ float vertices[] = {
 string readFile(const char* path)
 {
     std::ifstream file(path);
-    if (!file.is_open())
+    if (!file.is_open()) 
+    {
+        std::cout << "ERROR::FILE_NOT_SUCCESFULLY_READ: " << path << std::endl;
         return "";
+    }
 
     string buffer{std::istreambuf_iterator<char>(file), {}};
     return buffer;
@@ -38,6 +41,17 @@ unsigned int createShader(const char* source, GLenum shaderType)
     shader = glCreateShader(shaderType);
 
     glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+
+    int success;
+    char infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
     return shader;
 }
 
@@ -51,6 +65,15 @@ unsigned int createShaderProgram(const unsigned int* shaders, const unsigned int
         glAttachShader(shaderProgram, *(shaders + i));
     }
     glLinkProgram(shaderProgram);
+
+    int success;
+    char infoLog[512];
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
     return shaderProgram;
 }
 
@@ -111,8 +134,8 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
 
-    string vertexShaderSource = readFile("shaders/passthrough.vert");
-    string fragmentShaderSource = readFile("shaders/fluid.frag");
+    string vertexShaderSource = readFile("src/shaders/passthrough.vert");
+    string fragmentShaderSource = readFile("src/shaders/fluid.frag");
 
     unsigned int vertexShader = createShader(vertexShaderSource.c_str(), GL_VERTEX_SHADER);
     unsigned int fragmentShader = createShader(fragmentShaderSource.c_str(), GL_FRAGMENT_SHADER);
