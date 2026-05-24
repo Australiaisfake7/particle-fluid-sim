@@ -1,0 +1,83 @@
+#version 460 core
+
+const ivec2 gridSize = ivec2(16, 12);
+const float h = 0.9;
+const float pi = 3.14159265358979323846;
+
+uniform int gridCellPointers[192];
+
+layout(local_size_x = 64) in;
+
+struct Particle
+{
+    vec2 position;
+    vec2 velocity;
+};
+
+layout(std430, binding = 0) readonly buffer ParticlesIn
+{
+    Particle particlesIn[];
+};
+
+layout(std430, binding = 1) writeonly buffer ParticlesOut
+{
+    Particle particlesOut[];
+};
+
+float cubicSpline(float q)
+{
+    if (q < 1.0)
+    {
+        return 10.0 / (7.0 * pi * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3));
+    }
+    if (q <= 2.0)
+    {
+        return 10.0 / (7.0 * pi * h * h) * pow(2 - q, 3);
+    }
+    return 0.0;
+}
+
+
+vec2 calculateForce(int p)
+{
+    vec2 force = vec2(0.0);
+
+    vec2 pos = particlesIn[p].position;
+    ivec2 startCell = ivec2(floor(pos / h));
+
+    for (int y = -1; y <= 1; y++)
+    {
+        for (int x = -1; x <= 1; x++)
+        {
+            ivec2 cell = startCell + ivec2(x, y);
+
+            if (cell.x > gridSize.x - 1 || cell.x < 0 || cell.y > gridSize.y - 1 || cell.y < 0)
+            {
+                continue;
+            }
+            int cellCoord = cell.x + cell.y * gridSize.x;
+
+            int end = cellCoord < 191 ? gridCellPointers[cellCoord + 1] : particlesIn.length();
+            for (int i = gridCellPointers[cellCoord]; i < end; i++)
+            {
+                if (i == p) continue;
+                vec2 r = pos - particlesIn[i].position;
+                float dist = length(r);
+
+                force += cubicSpline(dist / h) * (r / dist);
+            }
+        }
+    }
+
+    return force;
+}
+
+void main()
+{
+    if (gl_GlobalInvocationID.x >= particlesIn.length())
+    {
+        return;
+    }
+
+    vec2 force = calculateForce(gl_GlobalInvocationID.x);
+}

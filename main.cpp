@@ -165,6 +165,7 @@ int main()
     // This is the render loop
     while (!glfwWindowShouldClose(window))
     {
+        glfwPollEvents();
         ProcessInput(window);
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -188,7 +189,6 @@ int main()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
     ImGui_ImplOpenGL3_Shutdown();
