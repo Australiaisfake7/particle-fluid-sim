@@ -178,7 +178,7 @@ int main()
 
     deleteShaders(shaders, sizeof(shaders) / sizeof(unsigned int));
 
-    string particleShaderSource = readFile("src/shaders/particle.comp");
+    string particleShaderSource = readFile("src/shaders/particles.comp");
 
     unsigned int particleShader = createShader(particleShaderSource.c_str(), GL_COMPUTE_SHADER);
     unsigned int particleShaderProgram = createShaderProgram(&particleShader, 1);

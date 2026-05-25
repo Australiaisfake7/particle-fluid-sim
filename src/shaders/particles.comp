@@ -30,17 +30,17 @@ float cubicSpline(float q)
 {
     if (q < 1.0)
     {
-        return 10.0 / (7.0 * pi * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3));
+        return 10.0 / (7.0 * pi * h * h) * (pow(2.0 - q, 3.0) - 4 * pow(1.0 - q, 3.0));
     }
     if (q <= 2.0)
     {
-        return 10.0 / (7.0 * pi * h * h) * pow(2 - q, 3);
+        return 10.0 / (7.0 * pi * h * h) * pow(2.0 - q, 3.0);
     }
     return 0.0;
 }
 
 
-vec4 calculateForceAndVelocityDrift(int p)
+vec4 calculateForceAndVelocityDrift(uint p)
 {
     vec2 force = vec2(0.0);
     vec2 velocityDrift = vec2(0.0);
@@ -62,13 +62,13 @@ vec4 calculateForceAndVelocityDrift(int p)
             }
             int cellCoord = cell.x + cell.y * gridSize.x;
 
-            int end = cellCoord < 191 ? gridCellPointers[cellCoord + 1] : particlesIn.length();
-            for (int i = gridCellPointers[cellCoord]; i < end; i++)
+            int end = cellCoord < 191 ? int(gridCellPointers[cellCoord + 1]) : particlesIn.length();
+            for (int i = int(gridCellPointers[cellCoord]); i < end; i++)
             {
                 if (i == p) continue;
                 vec2 r = pos - particlesIn[i].position;
                 float dist = length(r);
-                IF (dist == 0.0) continue;
+                if (dist == 0.0) continue;
 
                 float strength = cubicSpline(dist / h);
 
@@ -83,7 +83,7 @@ vec4 calculateForceAndVelocityDrift(int p)
 
 void main()
 {
-    int i = gl_GlobalInvocationID.x;
+    int i = int(gl_GlobalInvocationID.x);
 
     if (i >= particlesIn.length())
     {
