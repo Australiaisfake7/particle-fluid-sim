@@ -38,22 +38,6 @@ struct Particle
 
 #pragma region Helpers
 
-void physicsUpdate(unsigned int buffers[2], unsigned int program, array<unsigned int, 192> gridCellPointers)
-{
-    glUseProgram(program);
-
-    glUniform1uiv(glGetUniformLocation(program, "gridCellPointers"), 192, gridCellPointers.data());
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffers[currentParticleBuffer]);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffers[1 - currentParticleBuffer]);
-
-    glDispatchCompute((PARTICLE_COUNT + 63) / 64, 1, 1);
-
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-    currentParticleBuffer = 1 - currentParticleBuffer;
-}
-
 string readFile(const char* path)
 {
     std::ifstream file(path);
@@ -118,6 +102,22 @@ void deleteShaders(const unsigned int* shaders, const unsigned int count)
 }
 
 #pragma endregion Helpers
+
+void physicsUpdate(unsigned int buffers[2], unsigned int program, array<unsigned int, 192> gridCellPointers)
+{
+    glUseProgram(program);
+
+    glUniform1uiv(glGetUniformLocation(program, "gridCellPointers"), 192, gridCellPointers.data());
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffers[currentParticleBuffer]);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffers[1 - currentParticleBuffer]);
+
+    glDispatchCompute((PARTICLE_COUNT + 63) / 64, 1, 1);
+
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+    currentParticleBuffer = 1 - currentParticleBuffer;
+}
 
 void ProcessInput(GLFWwindow* window)
 {
