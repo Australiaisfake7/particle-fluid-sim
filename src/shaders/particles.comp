@@ -3,8 +3,10 @@
 const ivec2 gridSize = ivec2(16, 12);
 const float h = 0.9;
 const float pi = 3.14159265358979323846;
+const float velDriftStrength = 0.1;
 
 uniform int gridCellPointers[192];
+uniform float dt;
 
 layout(local_size_x = 64) in;
 
@@ -38,11 +40,14 @@ float cubicSpline(float q)
 }
 
 
-vec2 calculateForce(int p)
+vec4 calculateForceAndVelocityDrift(int p)
 {
     vec2 force = vec2(0.0);
+    vec2 velocityDrift = vec2(0.0);
 
     vec2 pos = particlesIn[p].position;
+    vec2 vel = particlesIn[p].velocity;
+
     ivec2 startCell = ivec2(floor(pos / h));
 
     for (int y = -1; y <= 1; y++)
@@ -63,21 +68,38 @@ vec2 calculateForce(int p)
                 if (i == p) continue;
                 vec2 r = pos - particlesIn[i].position;
                 float dist = length(r);
+                IF (dist == 0.0) continue;
 
-                force += cubicSpline(dist / h) * (r / dist);
+                float strength = cubicSpline(dist / h);
+
+                force += strength * (r / dist);
+                velocityDrift += strength * (particlesIn[i].velocity - vel);
             }
         }
     }
 
-    return force;
+    return vec4(force, velocityDrift);
 }
 
 void main()
 {
-    if (gl_GlobalInvocationID.x >= particlesIn.length())
+    int i = gl_GlobalInvocationID.x;
+
+    if (i >= particlesIn.length())
     {
         return;
     }
 
-    vec2 force = calculateForce(gl_GlobalInvocationID.x);
+    vec4 forceAndDrift = calculateForceAndVelocityDrift(i);
+
+    vec2 pos = particlesIn[i].position;
+    vec2 vel = particlesIn[i].velocity;
+
+    vel += forceAndDrift.xy * dt;
+    vel += forceAndDrift.zw * velDriftStrength;
+
+    pos += vel * dt;
+
+    particlesOut[i].position = pos;
+    particlesOut[i].velocity = vel;
 }
