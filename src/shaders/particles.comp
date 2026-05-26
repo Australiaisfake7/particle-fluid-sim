@@ -1,10 +1,10 @@
 #version 460 core
 
-const ivec2 gridSize = ivec2(16, 12);
 const float h = 0.9;
 const float pi = 3.14159265358979323846;
 const float velDriftStrength = 0.1;
 
+uniform uvec2 gridSize;
 uniform float dt;
 
 layout(local_size_x = 64) in;
@@ -66,7 +66,7 @@ vec4 calculateForceAndVelocityDrift(uint p)
             }
             int cellCoord = cell.x + cell.y * gridSize.x;
 
-            int end = cellCoord < 191 ? int(gridCellPointers[cellCoord + 1]) : particlesIn.length();
+            int end = cellCoord < gridSize.x * gridSize.y - 1 ? int(gridCellPointers[cellCoord + 1]) : particlesIn.length();
             for (int i = int(gridCellPointers[cellCoord]); i < end; i++)
             {
                 if (i == p) continue;

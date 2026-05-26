@@ -16,6 +16,7 @@ using std::string, std::array;
 
 const size_t PARTICLE_COUNT = 1000;
 const float PHYSICS_TIMESTEP = 1.0 / 60.0;
+const glm::uvec2 GRID_SIZE = {16, 12};
 
 unsigned int currentParticleBuffer = 0;
 double lastFrame = 0.0;
@@ -103,13 +104,13 @@ void deleteShaders(const unsigned int* shaders, const unsigned int count)
 
 #pragma endregion Helpers
 
-void physicsUpdate(unsigned int particleBuffers[2], unsigned int program, )
+void physicsUpdate(unsigned int particleBuffers[2], unsigned int program, unsigned int gridCellPointerBuffer)
 {
     glUseProgram(program);
 
-
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particleBuffers[1 - currentParticleBuffer]);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, gridCellPointerBuffer);
 
     glDispatchCompute((PARTICLE_COUNT + 63) / 64, 1, 1);
 
@@ -184,6 +185,11 @@ int main()
 
     deleteShaders(&particleShader, 1);
 
+    glUseProgram(particleShaderProgram);
+
+    glUniform2ui(glGetUniformLocation(particleShaderProgram, "gridSize"), GRID_SIZE.x, GRID_SIZE.y);
+    glUniform1f(glGetUniformLocation(particleShaderProgram, "dt"), PHYSICS_TIMESTEP);
+
     unsigned int VAO, VBO;
 
     glGenVertexArrays(1, &VAO);
@@ -206,7 +212,7 @@ int main()
     glGenBuffers(1, &gridCellPointerBuffer);
 
     array<Particle, PARTICLE_COUNT> particles;
-    array<unsigned int, 192> gridCellPointers;
+    array<unsigned int, GRID_SIZE.x * GRID_SIZE.y> gridCellPointers;
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleBuffers[0]);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * PARTICLE_COUNT, particles.data(), GL_DYNAMIC_DRAW);
@@ -214,7 +220,7 @@ int main()
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * PARTICLE_COUNT, nullptr, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, gridCellPointerBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, 192, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned int) * GRID_SIZE.x * GRID_SIZE.y, nullptr, GL_DYNAMIC_DRAW);
 
     lastFrame = glfwGetTime();
 
@@ -239,7 +245,7 @@ int main()
 
         while (dtAccumulator >= PHYSICS_TIMESTEP)
         {
-            physicsUpdate(particleBuffers, particleShaderProgram, gridCellPointers);
+            physicsUpdate(particleBuffers, particleShaderProgram, gridCellPointerBuffer);
             dtAccumulator -= PHYSICS_TIMESTEP;
         }
 
