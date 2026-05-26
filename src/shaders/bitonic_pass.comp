@@ -1,0 +1,44 @@
+#version 460 core
+
+uniform uint stride;
+uniform uint block;
+
+uniform uvec2 gridSize;
+
+struct Particle
+{
+    vec2 position;
+    vec2 velocity;
+};
+
+layout(std430, binding = 0) readonly buffer Particles
+{
+    Particle particles[];
+};
+
+uint gridCell(Particle p)
+{
+    ivec2 pos = p.position / gridSize;
+
+    return pos.x + pos.y * gridSize.x;
+}
+
+void main()
+{
+    uint t = gl_GlobalInvocationID.x;
+
+    uint e = findLSB(stride);
+    uint i = 2 * stride * (t >> e) + (t & (stride - 1));
+
+    uint j = i ^ stride;
+
+    bool a = i & block == 0;
+
+    if (gridCell(particles[i]) > gridCell(particles[j]) != a)
+    {
+        Particle p = particles[i];
+
+        particles[i] = particles[j];
+        particles[j] = p;
+    }
+}
