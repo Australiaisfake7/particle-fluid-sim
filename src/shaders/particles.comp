@@ -34,11 +34,11 @@ float cubicSpline(float q)
 {
     if (q < 1.0)
     {
-        return 10.0 / (7.0 * pi * h * h) * (pow(2.0 - q, 3.0) - 4 * pow(1.0 - q, 3.0));
+        return 10.0 / (28.0 * pi * h * h) * (pow(2.0 - q, 3.0) - 4 * pow(1.0 - q, 3.0));
     }
     if (q <= 2.0)
     {
-        return 10.0 / (7.0 * pi * h * h) * pow(2.0 - q, 3.0);
+        return 10.0 / (28.0 * pi * h * h) * pow(2.0 - q, 3.0);
     }
     return 0.0;
 }
@@ -52,7 +52,7 @@ vec4 calculateForceAndVelocityDrift(uint p)
     vec2 pos = particlesIn[p].position;
     vec2 vel = particlesIn[p].velocity;
 
-    ivec2 startCell = ivec2(floor(pos / h));
+    ivec2 startCell = ivec2(floor(pos));
 
     for (int y = -1; y <= 1; y++)
     {
