@@ -1,0 +1,45 @@
+#version 460 core
+
+uniform uvec2 gridSize;
+
+layout(local_size_x = 64) in;
+
+struct Particle
+{
+    vec2 position;
+    vec2 velocity;
+};
+
+layout(std430, binding = 0) readonly buffer Particles
+{
+    Particle particles[];
+};
+
+layout(std430, binding = 1) writeonly buffer GridCellPointers
+{
+    uint gridCellPointers[];
+};
+
+uint gridCell(Particle p)
+{
+    uvec2 pos = uvec2(p.position);
+
+    return pos.x + pos.y * gridSize.x;
+}
+
+void main()
+{
+    if (gl_GlobalInvocationID.x >= particles.length())
+    {
+        return;
+    }
+
+    if (gl_GlobalInvocationID.x == 0 || gridCell(particles[gl_GlobalInvocationID.x]) > gridCell(particles[gl_GlobalInvocationID.x - 1]))
+    {
+        gridCellPointers[gridCell(particles[gl_GlobalInvocationID.x])] = gl_GlobalInvocationID.x;
+    }
+    else
+    {
+        gridCellPointers[gridCell(particles[gl_GlobalInvocationID.x])] = 0;
+    }
+}
