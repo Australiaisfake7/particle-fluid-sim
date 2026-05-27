@@ -14,7 +14,9 @@
 
 using std::string, std::array;
 
-const size_t PARTICLE_COUNT = 1000;
+const unsigned int PARTICLE_COUNT_EXPONENT = 10;
+// Must be power of 2
+const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
 const float PHYSICS_TIMESTEP = 1.0 / 60.0;
 const glm::uvec2 GRID_SIZE = {16, 12};
 
@@ -104,9 +106,33 @@ void deleteShaders(const unsigned int* shaders, const unsigned int count)
 
 #pragma endregion Helpers
 
-void physicsUpdate(unsigned int particleBuffers[2], unsigned int program, unsigned int gridCellPointerBuffer)
+void physicsUpdate(unsigned int particleBuffers[2], unsigned int particleProgram, unsigned int bitonicSortProgram, unsigned int gridCellPointerBuffer, unsigned int cellPointerProgram)
 {
-    glUseProgram(program);
+    glUseProgram(bitonicSortProgram);
+    
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
+
+    for (int b = 2; b <= PARTICLE_COUNT; b <<= 1)
+    {
+        for (int s = b >> 1; s >= 1; s >>= 1)
+        {
+            glUniform1ui(glGetUniformLocation(bitonicSortProgram, "block"), b);
+            glUniform1ui(glGetUniformLocation(bitonicSortProgram, "stride"), s);
+            glDispatchCompute((PARTICLE_COUNT + 63) / 64, 1, 1);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        }
+    }
+
+    glUseProgram(cellPointerProgram);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, gridCellPointerBuffer);
+
+    glDispatchCompute((PARTICLE_COUNT + 63) / 64, 1, 1);
+
+    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+
+    glUseProgram(particleProgram);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particleBuffers[1 - currentParticleBuffer]);
@@ -190,6 +216,28 @@ int main()
     glUniform2ui(glGetUniformLocation(particleShaderProgram, "gridSize"), GRID_SIZE.x, GRID_SIZE.y);
     glUniform1f(glGetUniformLocation(particleShaderProgram, "dt"), PHYSICS_TIMESTEP);
 
+    string bitonicSortShaderSource = readFile("src/shaders/bitonic_pass.comp");
+
+    unsigned int bitonicSortShader = createShader(bitonicSortShaderSource.c_str(), GL_COMPUTE_SHADER);
+    unsigned int bitonicSortProgram = createShaderProgram(&bitonicSortShader, 1);
+
+    deleteShaders(&bitonicSortShader, 1);
+
+    glUseProgram(bitonicSortProgram);
+
+    glUniform2ui(glGetUniformLocation(bitonicSortProgram, "gridSize"), GRID_SIZE.x, GRID_SIZE.y);
+
+    string cellPointerShaderSource = readFile("src/shaders/grid_cell_pointers.comp");
+
+    unsigned int cellPointerShader = createShader(cellPointerShaderSource.c_str(), GL_COMPUTE_SHADER);
+    unsigned int cellPointerProgram = createShaderProgram(&cellPointerShader, 1);
+
+    deleteShaders(&cellPointerShader, 1);
+
+    glUseProgram(cellPointerProgram);
+
+    glUniform2ui(glGetUniformLocation(cellPointerProgram, "gridSize"), GRID_SIZE.x, GRID_SIZE.y);
+
     unsigned int VAO, VBO;
 
     glGenVertexArrays(1, &VAO);
@@ -245,7 +293,7 @@ int main()
 
         while (dtAccumulator >= PHYSICS_TIMESTEP)
         {
-            physicsUpdate(particleBuffers, particleShaderProgram, gridCellPointerBuffer);
+            physicsUpdate(particleBuffers, particleShaderProgram, bitonicSortProgram, gridCellPointerBuffer, cellPointerProgram);
             dtAccumulator -= PHYSICS_TIMESTEP;
         }
 
