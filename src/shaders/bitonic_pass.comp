@@ -5,6 +5,8 @@ uniform uint block;
 
 uniform uvec2 gridSize;
 
+layout(local_size_x = 64) in;
+
 struct Particle
 {
     vec2 position;
@@ -18,7 +20,7 @@ layout(std430, binding = 0) buffer Particles
 
 uint gridCell(Particle p)
 {
-    uvec2 pos = uvec2(p.position) / gridSize;
+    uvec2 pos = uvec2(p.position);
 
     return pos.x + pos.y * gridSize.x;
 }
