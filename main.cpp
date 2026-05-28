@@ -130,7 +130,7 @@ void physicsUpdate(unsigned int particleBuffers[2], unsigned int particleProgram
 
     glDispatchCompute((PARTICLE_COUNT + 63) / 64, 1, 1);
 
-    glMemoryBarrier(GL_SHADER_STORAGE_BUFFER);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     glUseProgram(particleProgram);
 
