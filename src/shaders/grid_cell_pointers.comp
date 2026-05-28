@@ -38,8 +38,4 @@ void main()
     {
         gridCellPointers[gridCell(particles[gl_GlobalInvocationID.x])] = gl_GlobalInvocationID.x;
     }
-    else
-    {
-        gridCellPointers[gridCell(particles[gl_GlobalInvocationID.x])] = 0;
-    }
 }
