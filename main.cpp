@@ -125,6 +125,8 @@ void physicsUpdate(unsigned int particleBuffers[2], unsigned int particleProgram
 
     glUseProgram(cellPointerProgram);
 
+    glClearNamedBufferData(gridCellPointerBuffer, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, gridCellPointerBuffer);
 
