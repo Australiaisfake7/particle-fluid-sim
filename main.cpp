@@ -17,7 +17,9 @@ using std::string, std::array;
 const unsigned int PARTICLE_COUNT_EXPONENT = 11;
 // Must be power of 2
 const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
-const float PHYSICS_TIMESTEP = 1.0 / 60.0;
+const float PHYSICS_TIMESTEP = 1.0 / 120.0;
+// Simulation speed scale factor
+const float SIM_RATE = 1.0f;
 constexpr unsigned int GRID_WIDTH = 16;
 constexpr unsigned int GRID_HEIGHT = 12;
 const glm::uvec2 GRID_SIZE = {GRID_WIDTH, GRID_HEIGHT};
@@ -231,7 +233,7 @@ int main()
     glUseProgram(particleShaderProgram);
 
     glUniform2ui(glGetUniformLocation(particleShaderProgram, "gridSize"), GRID_WIDTH, GRID_HEIGHT);
-    glUniform1f(glGetUniformLocation(particleShaderProgram, "dt"), PHYSICS_TIMESTEP);
+    glUniform1f(glGetUniformLocation(particleShaderProgram, "dt"), PHYSICS_TIMESTEP * SIM_RATE);
 
     string bitonicSortShaderSource = readFile("src/shaders/bitonic_pass.comp");
 
@@ -305,7 +307,7 @@ int main()
         double deltatime = now - lastFrame;
         lastFrame = now;
 
-        dtAccumulator += deltatime;
+        dtAccumulator += deltatime * SIM_RATE;
 
         glfwPollEvents();
         ProcessInput(window);
@@ -337,9 +339,9 @@ int main()
         glBindVertexArray(0);
 
         ImGui::Begin("Simulation Settings");
-        ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.05f, 0.65f);
-        ImGui::SliderFloat("Visual Smoothing Radius", &visualSmoothingRadius, 0.05f, 0.65f);
-        ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.0f);
+        ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.05f, 1.5f);
+        ImGui::SliderFloat("Visual Smoothing Radius", &visualSmoothingRadius, 0.05f, 1.5f);
+        ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.5f);
         ImGui::End();
 
         ImGui::Render();

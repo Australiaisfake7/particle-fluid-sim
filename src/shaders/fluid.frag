@@ -78,5 +78,7 @@ void main()
         }
     }
 
-    FragColor = vec4(0.0f, 0.0f, density * particleBrightness, 1.0f);
+    float normFactor = 1.0 / particles.length() * gridSize.x * gridSize.y;
+
+    FragColor = vec4(0.0f, 0.0f, density * particleBrightness * normFactor, 1.0f);
 }

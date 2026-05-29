@@ -84,7 +84,9 @@ vec4 calculateForceAndVelocityDrift(uint p)
         }
     }
 
-    return vec4(force, velocityDrift);
+    float normFactor = 1.0 / particlesIn.length() * gridSize.x * gridSize.y;
+
+    return vec4(force * normFactor, velocityDrift * normFactor);
 }
 
 void main()
@@ -102,7 +104,7 @@ void main()
     vec2 vel = particlesIn[i].velocity;
 
     vel += forceAndDrift.xy * dt;
-    vel += forceAndDrift.zw * velDriftStrength;
+    vel += forceAndDrift.zw * velDriftStrength * dt;
 
     pos += vel * dt;
 
