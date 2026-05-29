@@ -3,6 +3,7 @@
 const float h = 0.9;
 const float pi = 3.14159265358979323846;
 const float velDriftStrength = 0.1;
+const float padding = 0.1;
 
 uniform uvec2 gridSize;
 uniform float dt;
@@ -65,7 +66,7 @@ vec4 calculateForceAndVelocityDrift(uint p)
                 continue;
             }
             uint cellCoord = uint(cell.x) + uint(cell.y) * gridSize.x;
-            
+
             for (uint i = gridCellPointers[cellCoord].x; i < gridCellPointers[cellCoord].y; i++)
             {
                 if (i == p) continue;
@@ -102,6 +103,15 @@ void main()
     vel += forceAndDrift.zw * velDriftStrength;
 
     pos += vel * dt;
+
+    vec2 minBounds = vec2(padding);
+    vec2 maxBounds = vec2(gridSize) - vec2(padding);
+
+    if (pos.x < minBounds.x) { pos.x = minBounds.x; vel.x *= -0.5; }
+    if (pos.x > maxBounds.x) { pos.x = maxBounds.x; vel.x *= -0.5; }
+    
+    if (pos.y < minBounds.y) { pos.y = minBounds.y; vel.y *= -0.5; }
+    if (pos.y > maxBounds.y) { pos.y = maxBounds.y; vel.y *= -0.5; }
 
     particlesOut[i].position = pos;
     particlesOut[i].velocity = vel;
