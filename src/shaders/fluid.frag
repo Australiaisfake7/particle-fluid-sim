@@ -51,9 +51,11 @@ void main()
     vec2 pos = gl_FragCoord.xy / vec2(screenRes) * vec2(gridSize);
     ivec2 startCell = ivec2(floor(pos));
 
-    for (int y = -1; y <= 1; y++)
+    int mR = 1 + int(floor(2 * h));
+
+    for (int y = -mR; y <= mR; y++)
     {
-        for (int x = -1; x <= 1; x++)
+        for (int x = -mR; x <= mR; x++)
         {
             ivec2 cell = startCell + ivec2(x, y);
 

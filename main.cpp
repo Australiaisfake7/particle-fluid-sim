@@ -28,7 +28,7 @@ double dtAccumulator = 0.0;
 
 glm::uvec2 screenRes = glm::uvec2(800, 600);
 
-float smoothingRadius = 0.9f;
+float smoothingRadius = 0.45f;
 float particleBrightness = 0.1f;
 
 float vertices[] = {
@@ -336,7 +336,7 @@ int main()
         glBindVertexArray(0);
 
         ImGui::Begin("Simulation Settings");
-        ImGui::SliderFloat("Smoothing Radius", &smoothingRadius, 0.1f, 0.95f);
+        ImGui::SliderFloat("Smoothing Radius", &smoothingRadius, 0.05f, 0.65f);
         ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.0f);
         ImGui::End();
 
