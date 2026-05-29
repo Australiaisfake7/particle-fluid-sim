@@ -14,7 +14,7 @@
 
 using std::string, std::array;
 
-const unsigned int PARTICLE_COUNT_EXPONENT = 10;
+const unsigned int PARTICLE_COUNT_EXPONENT = 11;
 // Must be power of 2
 const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
 const float PHYSICS_TIMESTEP = 1.0 / 60.0;
@@ -28,7 +28,8 @@ double dtAccumulator = 0.0;
 
 glm::uvec2 screenRes = glm::uvec2(800, 600);
 
-float smoothingRadius = 0.45f;
+float physicsSmoothingRadius = 0.45f;
+float visualSmoothingRadius = 0.45f;
 float particleBrightness = 0.1f;
 
 float vertices[] = {
@@ -143,7 +144,7 @@ void physicsUpdate(unsigned int particleBuffers[2], unsigned int particleProgram
 
     glUseProgram(particleProgram);
 
-    glUniform1f(glGetUniformLocation(particleProgram, "h"), smoothingRadius);
+    glUniform1f(glGetUniformLocation(particleProgram, "h"), physicsSmoothingRadius / 2.0);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particleBuffers[1 - currentParticleBuffer]);
@@ -325,7 +326,7 @@ int main()
         glUseProgram(shaderProgram);
 
         glUniform2ui(glGetUniformLocation(shaderProgram, "screenRes"), screenRes.x, screenRes.y);
-        glUniform1f(glGetUniformLocation(shaderProgram, "h"), smoothingRadius);
+        glUniform1f(glGetUniformLocation(shaderProgram, "h"), visualSmoothingRadius / 2.0);
         glUniform1f(glGetUniformLocation(shaderProgram, "particleBrightness"), particleBrightness);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
@@ -336,7 +337,8 @@ int main()
         glBindVertexArray(0);
 
         ImGui::Begin("Simulation Settings");
-        ImGui::SliderFloat("Smoothing Radius", &smoothingRadius, 0.05f, 0.65f);
+        ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.05f, 0.65f);
+        ImGui::SliderFloat("Visual Smoothing Radius", &visualSmoothingRadius, 0.05f, 0.65f);
         ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.0f);
         ImGui::End();
 
