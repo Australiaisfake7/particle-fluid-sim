@@ -74,11 +74,23 @@ vec4 calculateForceAndVelocityDrift(uint p)
                 if (i == p) continue;
                 vec2 r = pos - particlesIn[i].position;
                 float dist = length(r);
-                if (dist == 0.0) continue;
+                vec2 dir;
+
+                // Prevent clumping
+                if (dist < h * 0.01)
+                {
+                    float angle = float(i ^ p) * 2.399963;
+                    dir = vec2(cos(angle), sin(angle)) * (i > p ? 1 : -1);
+                    dist = 0.01 * h;
+                }
+                else
+                {
+                    dir = r / dist;
+                }
 
                 float strength = cubicSpline(dist / h);
 
-                force += strength * (r / dist);
+                force += strength * dir;
                 velocityDrift += strength * (particlesIn[i].velocity - vel);
             }
         }
