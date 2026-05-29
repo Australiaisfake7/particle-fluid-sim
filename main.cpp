@@ -30,9 +30,9 @@ double dtAccumulator = 0.0;
 
 glm::uvec2 screenRes = glm::uvec2(800, 600);
 
-float physicsSmoothingRadius = 0.45f;
-float visualSmoothingRadius = 0.45f;
-float particleBrightness = 0.1f;
+float physicsSmoothingRadius = 1.0f;
+float visualSmoothingRadius = 0.65f;
+float particleBrightness = 0.35f;
 
 float vertices[] = {
     -1.0f, 1.0f,
