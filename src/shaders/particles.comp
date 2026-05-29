@@ -86,6 +86,13 @@ vec4 calculateForceAndVelocityDrift(uint p)
 
     float normFactor = 1.0 / particlesIn.length() * gridSize.x * gridSize.y;
 
+    float leftForce = cubicSpline((pos.x - padding) / h);
+    float rightForce = cubicSpline((gridSize.x - padding - pos.x) / h);
+    float topForce = cubicSpline((gridSize.y - padding - pos.y) / h);
+    float bottomForce = cubicSpline((pos.y - padding) / h);
+
+    force += (vec2(leftForce, bottomForce) - vec2(rightForce, topForce)) * normFactor;
+
     return vec4(force * normFactor, velocityDrift * normFactor);
 }
 
