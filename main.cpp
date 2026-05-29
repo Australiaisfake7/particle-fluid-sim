@@ -28,6 +28,9 @@ double dtAccumulator = 0.0;
 
 glm::uvec2 screenRes = glm::uvec2(800, 600);
 
+float smoothingRadius = 0.9f;
+float particleBrightness = 0.1f;
+
 float vertices[] = {
     -1.0f, 1.0f,
     -1.0f, -1.0f,
@@ -140,6 +143,8 @@ void physicsUpdate(unsigned int particleBuffers[2], unsigned int particleProgram
 
     glUseProgram(particleProgram);
 
+    glUniform1f(glGetUniformLocation(particleProgram, "h"), smoothingRadius);
+
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particleBuffers[1 - currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, gridCellPointerBuffer);
@@ -165,7 +170,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Construct the window
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Template", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Fluid Simulation", nullptr, nullptr);
     if (!window)
     {
         std::cout << "Failed to create the GLFW window\n";
@@ -320,6 +325,8 @@ int main()
         glUseProgram(shaderProgram);
 
         glUniform2ui(glGetUniformLocation(shaderProgram, "screenRes"), screenRes.x, screenRes.y);
+        glUniform1f(glGetUniformLocation(shaderProgram, "h"), smoothingRadius);
+        glUniform1f(glGetUniformLocation(shaderProgram, "particleBrightness"), particleBrightness);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, gridCellPointerBuffer);
@@ -328,8 +335,9 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
-        ImGui::Begin("Test Window");
-        ImGui::Text("Debug Text");
+        ImGui::Begin("Simulation Settings");
+        ImGui::SliderFloat("Smoothing Radius", &smoothingRadius, 0.1f, 0.95f);
+        ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.0f);
         ImGui::End();
 
         ImGui::Render();

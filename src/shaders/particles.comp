@@ -1,12 +1,12 @@
 #version 460 core
 
-const float h = 0.9;
 const float pi = 3.14159265358979323846;
 const float velDriftStrength = 0.1;
 const float padding = 0.1;
 
 uniform uvec2 gridSize;
 uniform float dt;
+uniform float h;
 
 layout(local_size_x = 64) in;
 

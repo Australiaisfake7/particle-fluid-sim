@@ -2,10 +2,11 @@
 out vec4 FragColor;
 
 const float pi = 3.14159265358979323846;
-const float h = 0.2;
 
 uniform uvec2 gridSize;
 uniform uvec2 screenRes;
+uniform float h;
+uniform float particleBrightness;
 
 struct Particle
 {
@@ -75,5 +76,5 @@ void main()
         }
     }
 
-    FragColor = vec4(0.0f, 0.0f, density * 0.1f, 1.0f);
+    FragColor = vec4(0.0f, 0.0f, density * particleBrightness, 1.0f);
 }
