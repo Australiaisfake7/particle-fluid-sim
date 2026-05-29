@@ -18,11 +18,15 @@ const unsigned int PARTICLE_COUNT_EXPONENT = 10;
 // Must be power of 2
 const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
 const float PHYSICS_TIMESTEP = 1.0 / 60.0;
-const glm::uvec2 GRID_SIZE = {16, 12};
+constexpr unsigned int GRID_WIDTH = 16;
+constexpr unsigned int GRID_HEIGHT = 12;
+const glm::uvec2 GRID_SIZE = {GRID_WIDTH, GRID_HEIGHT};
 
 unsigned int currentParticleBuffer = 0;
 double lastFrame = 0.0;
 double dtAccumulator = 0.0;
+
+glm::uvec2 screenRes = glm::uvec2(800, 600);
 
 float vertices[] = {
     -1.0f, 1.0f,
@@ -118,7 +122,7 @@ void physicsUpdate(unsigned int particleBuffers[2], unsigned int particleProgram
         {
             glUniform1ui(glGetUniformLocation(bitonicSortProgram, "block"), b);
             glUniform1ui(glGetUniformLocation(bitonicSortProgram, "stride"), s);
-            glDispatchCompute((PARTICLE_COUNT + 63) / 64, 1, 1);
+            glDispatchCompute(((PARTICLE_COUNT / 2) + 63) / 64, 1, 1);
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         }
     }
@@ -181,6 +185,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height)
     {
         glViewport(0, 0, width, height);
+        screenRes = glm::uvec2(width, height);
     });
 
     // Setup Dear ImGui context
@@ -206,6 +211,10 @@ int main()
 
     deleteShaders(shaders, sizeof(shaders) / sizeof(unsigned int));
 
+    glUseProgram(shaderProgram);
+
+    glUniform2ui(glGetUniformLocation(shaderProgram, "gridSize"), GRID_WIDTH, GRID_HEIGHT);
+
     string particleShaderSource = readFile("src/shaders/particles.comp");
 
     unsigned int particleShader = createShader(particleShaderSource.c_str(), GL_COMPUTE_SHADER);
@@ -215,7 +224,7 @@ int main()
 
     glUseProgram(particleShaderProgram);
 
-    glUniform2ui(glGetUniformLocation(particleShaderProgram, "gridSize"), GRID_SIZE.x, GRID_SIZE.y);
+    glUniform2ui(glGetUniformLocation(particleShaderProgram, "gridSize"), GRID_WIDTH, GRID_HEIGHT);
     glUniform1f(glGetUniformLocation(particleShaderProgram, "dt"), PHYSICS_TIMESTEP);
 
     string bitonicSortShaderSource = readFile("src/shaders/bitonic_pass.comp");
@@ -227,7 +236,7 @@ int main()
 
     glUseProgram(bitonicSortProgram);
 
-    glUniform2ui(glGetUniformLocation(bitonicSortProgram, "gridSize"), GRID_SIZE.x, GRID_SIZE.y);
+    glUniform2ui(glGetUniformLocation(bitonicSortProgram, "gridSize"), GRID_WIDTH, GRID_HEIGHT);
 
     string cellPointerShaderSource = readFile("src/shaders/grid_cell_pointers.comp");
 
@@ -238,7 +247,7 @@ int main()
 
     glUseProgram(cellPointerProgram);
 
-    glUniform2ui(glGetUniformLocation(cellPointerProgram, "gridSize"), GRID_SIZE.x, GRID_SIZE.y);
+    glUniform2ui(glGetUniformLocation(cellPointerProgram, "gridSize"), GRID_WIDTH, GRID_HEIGHT);
 
     unsigned int VAO, VBO;
 
@@ -262,7 +271,16 @@ int main()
     glGenBuffers(1, &gridCellPointerBuffer);
 
     array<Particle, PARTICLE_COUNT> particles;
-    array<unsigned int, GRID_SIZE.x * GRID_SIZE.y> gridCellPointers;
+
+    srand(static_cast<unsigned int>(time(nullptr)));
+    for (int i = 0; i < PARTICLE_COUNT; i++)
+    {
+        float randomX = (rand() % 1000) / 1000.0f * GRID_WIDTH;
+        float randomY = (rand() % 1000) / 1000.0f * GRID_HEIGHT;
+    
+        particles[i].position = glm::vec2(randomX, randomY);
+        particles[i].velocity = glm::vec2(0.0f, 0.0f);
+    }
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleBuffers[0]);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * PARTICLE_COUNT, particles.data(), GL_DYNAMIC_DRAW);
@@ -270,7 +288,7 @@ int main()
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Particle) * PARTICLE_COUNT, nullptr, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, gridCellPointerBuffer);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned int) * GRID_SIZE.x * GRID_SIZE.y, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::uvec2) * GRID_WIDTH * GRID_HEIGHT, nullptr, GL_DYNAMIC_DRAW);
 
     lastFrame = glfwGetTime();
 
@@ -300,6 +318,11 @@ int main()
         }
 
         glUseProgram(shaderProgram);
+
+        glUniform2ui(glGetUniformLocation(shaderProgram, "screenRes"), screenRes.x, screenRes.y);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, gridCellPointerBuffer);
 
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);

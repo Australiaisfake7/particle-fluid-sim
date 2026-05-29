@@ -27,7 +27,7 @@ layout(std430, binding = 1) writeonly buffer ParticlesOut
 
 layout(std430, binding = 2) readonly buffer GridCellPointers
 {
-    uint gridCellPointers[];
+    uvec2 gridCellPointers[];
 };
 
 float cubicSpline(float q)
@@ -60,14 +60,13 @@ vec4 calculateForceAndVelocityDrift(uint p)
         {
             ivec2 cell = startCell + ivec2(x, y);
 
-            if (cell.x > gridSize.x - 1 || cell.x < 0 || cell.y > gridSize.y - 1 || cell.y < 0)
+            if (cell.x >= int(gridSize.x) || cell.x < 0 || cell.y >= int(gridSize.y) || cell.y < 0)
             {
                 continue;
             }
-            int cellCoord = cell.x + cell.y * gridSize.x;
-
-            int end = cellCoord < gridSize.x * gridSize.y - 1 ? int(gridCellPointers[cellCoord + 1]) : particlesIn.length();
-            for (int i = int(gridCellPointers[cellCoord]); i < end; i++)
+            uint cellCoord = uint(cell.x) + uint(cell.y) * gridSize.x;
+            
+            for (uint i = gridCellPointers[cellCoord].x; i < gridCellPointers[cellCoord].y; i++)
             {
                 if (i == p) continue;
                 vec2 r = pos - particlesIn[i].position;
