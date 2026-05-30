@@ -20,8 +20,8 @@ const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
 const float PHYSICS_TIMESTEP = 1.0 / 120.0;
 // Simulation speed scale factor
 const float SIM_RATE = 1.0f;
-constexpr unsigned int GRID_WIDTH = 16;
-constexpr unsigned int GRID_HEIGHT = 12;
+constexpr unsigned int GRID_WIDTH = 64;
+constexpr unsigned int GRID_HEIGHT = 48;
 const glm::uvec2 GRID_SIZE = {GRID_WIDTH, GRID_HEIGHT};
 
 unsigned int currentParticleBuffer = 0;
