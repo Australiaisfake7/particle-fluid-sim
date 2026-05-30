@@ -98,7 +98,7 @@ vec4 calculateForceAndVelocityDrift(uint p)
     float topForce = cubicSpline((gridSize.y - padding - pos.y) / h);
     float bottomForce = cubicSpline((pos.y - padding) / h);
 
-    force += (vec2(leftForce, bottomForce) - vec2(rightForce, topForce)) * normFactor;
+    force += (vec2(leftForce, bottomForce) - vec2(rightForce, topForce));
 
     force *= normFactor;
     velocityDrift *= normFactor;
@@ -116,7 +116,7 @@ void main()
     }
 
     vec2 pos = particlesIn[i].position;
-    vec2 vel = particlesIn[i].velocity;
+    vec2 vel = particlesIn[i].velocity * (1 - 0.9 * dt);
 
     float mouseDist = length(pos - mousePos);
 
@@ -127,7 +127,7 @@ void main()
 
     if (lmbHeld && mouseDist < mouseRadius)
     {
-        vel += (mouseDelta / dt - vel) * 0.01;
+        vel += (mouseDelta / dt - vel) * 0.002;
     }
 
     pos += vel * dt;

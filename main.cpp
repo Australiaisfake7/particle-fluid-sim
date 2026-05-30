@@ -14,7 +14,7 @@
 
 using std::string, std::array;
 
-const unsigned int PARTICLE_COUNT_EXPONENT = 14;
+const unsigned int PARTICLE_COUNT_EXPONENT = 12;
 // Must be power of 2
 const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
 const float PHYSICS_TIMESTEP = 1.0 / 120.0;
