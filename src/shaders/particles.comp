@@ -116,18 +116,18 @@ void main()
     }
 
     vec2 pos = particlesIn[i].position;
-    vec2 vel = particlesIn[i].velocity * (1 - 0.9 * dt);
+    vec2 vel = particlesIn[i].velocity;
 
     float mouseDist = length(pos - mousePos);
 
     vec4 forceAndDrift = calculateForceAndVelocityDrift(i);
 
-    vel += forceAndDrift.xy * dt;
-    vel += forceAndDrift.zw * velDriftStrength * dt;
+    vel += forceAndDrift.xy * dt * 10.0;
+    vel += forceAndDrift.zw * velDriftStrength;
 
     if (lmbHeld && mouseDist < mouseRadius)
     {
-        vel += (mouseDelta / dt - vel) * (mouseRadius - mouseDist) / mouseRadius * 0.1;
+        vel += mouseDelta / (vec2(1.0) + length(mouseDelta)) * (mouseRadius - mouseDist) / mouseRadius * 1.5;
     }
 
     pos += vel * dt;

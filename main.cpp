@@ -14,7 +14,7 @@
 
 using std::string, std::array;
 
-const unsigned int PARTICLE_COUNT_EXPONENT = 12;
+const unsigned int PARTICLE_COUNT_EXPONENT = 15;
 // Must be power of 2
 const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
 const float PHYSICS_TIMESTEP = 1.0 / 120.0;
@@ -394,10 +394,10 @@ int main()
         glBindVertexArray(0);
 
         ImGui::Begin("Simulation Settings");
-        ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.05f, 1.5f);
-        ImGui::SliderFloat("Visual Smoothing Radius", &visualSmoothingRadius, 0.05f, 1.5f);
+        ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.05f, 2.5f);
+        ImGui::SliderFloat("Visual Smoothing Radius", &visualSmoothingRadius, 0.05f, 3.0f);
         ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.5f);
-        ImGui::SliderFloat("Mouse Radius", &mouseRadius, 1.0f, 15.0f);
+        ImGui::SliderFloat("Mouse Radius", &mouseRadius, 2.0f, 9.0f);
         ImGui::End();
 
         ImGui::Render();
