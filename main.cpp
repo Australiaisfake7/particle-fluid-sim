@@ -33,6 +33,14 @@ glm::uvec2 screenRes = glm::uvec2(800, 600);
 float physicsSmoothingRadius = 1.0f;
 float visualSmoothingRadius = 0.65f;
 float particleBrightness = 0.35f;
+float mouseRadius = 1.5f;
+
+bool lmbHeld = false;
+
+double mousePosX;
+double mousePosY;
+float mouseDeltaX;
+float mouseDeltaY;
 
 float vertices[] = {
     -1.0f, 1.0f,
@@ -148,6 +156,17 @@ void physicsUpdate(unsigned int particleBuffers[2], unsigned int particleProgram
 
     glUniform1f(glGetUniformLocation(particleProgram, "h"), physicsSmoothingRadius / 2.0);
 
+    float mousePosGridX = (mousePosX / screenRes.x) * GRID_WIDTH;
+    float mousePosGridY = (1.0 - mousePosY / screenRes.y) * GRID_HEIGHT;
+    glUniform2f(glGetUniformLocation(particleProgram, "mousePos"), mousePosGridX, mousePosGridY);
+
+    float mouseDeltaGridX = (mouseDeltaX / screenRes.x) * GRID_WIDTH;
+    float mouseDeltaGridY = -(mouseDeltaY / screenRes.y) * GRID_HEIGHT;
+    glUniform2f(glGetUniformLocation(particleProgram, "mouseDelta"), mouseDeltaGridX, mouseDeltaGridY);
+
+    glUniform1f(glGetUniformLocation(particleProgram, "mouseRadius"), mouseRadius);
+    glUniform1i(glGetUniformLocation(particleProgram, "lmbHeld"), lmbHeld);
+
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleBuffers[currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particleBuffers[1 - currentParticleBuffer]);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, gridCellPointerBuffer);
@@ -206,6 +225,39 @@ int main()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
+
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods)
+    {
+        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+
+        if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE)
+        {
+            lmbHeld = false;
+            return;
+        }
+
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse)
+            return;
+
+        if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS)
+            lmbHeld = true;
+
+    });
+
+    glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos)
+    {
+        ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse)
+            return;
+
+        mouseDeltaX = xpos - mousePosX;
+        mouseDeltaY = ypos - mousePosY; 
+        mousePosX = xpos;
+        mousePosY = ypos;
+    });
 
     string vertexShaderSource = readFile("src/shaders/passthrough.vert");
     string fragmentShaderSource = readFile("src/shaders/fluid.frag");
@@ -325,6 +377,9 @@ int main()
             dtAccumulator -= PHYSICS_TIMESTEP;
         }
 
+        mouseDeltaX = 0.0f;
+        mouseDeltaY = 0.0f;
+
         glUseProgram(shaderProgram);
 
         glUniform2ui(glGetUniformLocation(shaderProgram, "screenRes"), screenRes.x, screenRes.y);
@@ -342,6 +397,7 @@ int main()
         ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.05f, 1.5f);
         ImGui::SliderFloat("Visual Smoothing Radius", &visualSmoothingRadius, 0.05f, 1.5f);
         ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.5f);
+        ImGui::SliderFloat("Mouse Radius", &mouseRadius, 1.0f, 15.0f);
         ImGui::End();
 
         ImGui::Render();
