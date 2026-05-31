@@ -27,6 +27,7 @@ const glm::uvec2 GRID_SIZE = {GRID_WIDTH, GRID_HEIGHT};
 unsigned int currentParticleBuffer = 0;
 double lastFrame = 0.0;
 double dtAccumulator = 0.0;
+bool hasGivenFramerateWarning = false;
 
 glm::uvec2 screenRes = glm::uvec2(800, 600);
 
@@ -373,7 +374,9 @@ int main()
 
         if (dtAccumulator > PHYSICS_TIMESTEP * 10)
         {
-            std::cout << "Warning: Frame rate accumulator is filling, this may be an indication that the simulation is too intenstive for your computer" << std::endl;
+            if (hasGivenFramerateWarning)
+                std::cout << "Warning: Frame rate accumulator is filling, repeated messages may be an indication that the simulation is too intensive for your computer" << std::endl;
+            hasGivenFramerateWarning = true;
         }
 
         while (dtAccumulator >= PHYSICS_TIMESTEP)

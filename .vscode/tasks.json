@@ -3,10 +3,39 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Build Active Project",
-            "command": "C:/msys64/ucrt64/bin/g++.exe",
+            "label": "Build Debug",
+            "command": "g++",
             "args": [
                 "-g",
+                "${workspaceFolder}/main.cpp",
+                "${workspaceFolder}/src/glad.c",
+                "${workspaceFolder}/src/imgui/*.cpp",
+                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/include/imgui",
+                "-L${workspaceFolder}/lib",
+                "-lglfw3",
+                "-lopengl32",
+                "-lgdi32",
+                "-o",
+                "${workspaceFolder}/main.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build Release",
+            "command": "g++",
+            "args": [
+                "-O2",
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolder}/src/glad.c",
                 "${workspaceFolder}/src/imgui/*.cpp",
