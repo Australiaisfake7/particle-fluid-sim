@@ -1,7 +1,15 @@
 # Real-time GPU Fluid Simulation in OpenGL
-![Windows](https://img.shields.io/badge/platform-Windows-blue)
-![OpenGL](https://img.shields.io/badge/OpenGL-4.6-green)
-![License](https://img.shields.io/badge/license-MIT-orange)
+[![Windows](https://img.shields.io/badge/platform-Windows-blue)](https://learn.microsoft.com/en-us/windows/)
+[![OpenGL](https://img.shields.io/badge/OpenGL-4.6-green)](https://www.opengl.org/)
+[![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
+
+## Contents
+
+* [Highlights](#highlights)
+* [Overview](#overview)
+* [Running The Project](#running-the-project)
+* [Parameters](#parameters)
+
 ## Highlights
 
 * ~32,000 particles simulated fully on the GPU
