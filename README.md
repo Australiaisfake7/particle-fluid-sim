@@ -18,7 +18,7 @@
 
 The fluid simulation is particle based and runs fully on the GPU using OpenGL compute shaders.\
 Interactions are optimized by using a grid to categorise particles and sorting them GPU side using bitonic sort, to reduce time complexity from $O(n^2)$ to $O(n\log^2 n)$ sort, and $O(n)$ physics.\
-Particle interactions use a repulsion based model and are ***not*** physically accurate.
+Particle interactions use a repulsion based model and are **not** physically accurate.
 
 ## Running The Project
 
@@ -38,10 +38,10 @@ g++ -O2 main.cpp src/glad.c src/imgui/*.cpp -Iinclude -Iinclude/imgui -Llib -lgl
 
 ### Physics
 
-*Physics Smoothing Radius*: The distance particles act over in grid units (grid is 64 x 48 cells).  
-*Mouse Radius*: The radius of the cursor's circle of interaction in grid units.  
+**Physics Smoothing Radius**: The distance particles act over in grid units (grid is 64 x 48 cells).  
+**Mouse Radius**: The radius of the cursor's circle of interaction in grid units.  
 
 ### Visual
 
-*Visual Smoothing Radius*: The distance pixel values consider for calculating their value in grid units, effectively works as a blur size to visualize the fluid continuously.  
-*Particle Brightness*: A scale value for the brightness of pixels.  
+**Visual Smoothing Radius**: The distance pixel values consider for calculating their value in grid units, effectively works as a blur size to visualize the fluid continuously.  
+**Particle Brightness**: A scale value for the brightness of pixels.  
