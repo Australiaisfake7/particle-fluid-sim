@@ -33,7 +33,7 @@ glm::uvec2 screenRes = glm::uvec2(800, 600);
 float physicsSmoothingRadius = 1.0f;
 float visualSmoothingRadius = 0.65f;
 float particleBrightness = 0.35f;
-float mouseRadius = 1.5f;
+float mouseRadius = 4.5f;
 
 bool lmbHeld = false;
 
@@ -371,6 +371,11 @@ int main()
         glClearColor(1.00f, 0.49f, 0.04f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        if (dtAccumulator > PHYSICS_TIMESTEP * 10)
+        {
+            std::cout << "Warning: Frame rate accumulator is filling, this may be an indication that the simulation is too intenstive for your computer" << std::endl;
+        }
+
         while (dtAccumulator >= PHYSICS_TIMESTEP)
         {
             physicsUpdate(particleBuffers, particleShaderProgram, bitonicSortProgram, gridCellPointerBuffer, cellPointerProgram);
@@ -394,10 +399,14 @@ int main()
         glBindVertexArray(0);
 
         ImGui::Begin("Simulation Settings");
-        ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.05f, 2.5f);
+
+        ImGui::SeparatorText("Physics");
+        ImGui::SliderFloat("Physics Smoothing Radius", &physicsSmoothingRadius, 0.15f, 2.5f);
+        ImGui::SliderFloat("Mouse Radius", &mouseRadius, 2.0f, 9.0f);
+
+        ImGui::SeparatorText("Visual");
         ImGui::SliderFloat("Visual Smoothing Radius", &visualSmoothingRadius, 0.05f, 3.0f);
         ImGui::SliderFloat("Particle Brightness", &particleBrightness, 0.0f, 1.5f);
-        ImGui::SliderFloat("Mouse Radius", &mouseRadius, 2.0f, 9.0f);
         ImGui::End();
 
         ImGui::Render();

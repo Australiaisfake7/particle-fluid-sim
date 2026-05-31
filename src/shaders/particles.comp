@@ -127,7 +127,7 @@ void main()
 
     if (lmbHeld && mouseDist < mouseRadius)
     {
-        vel += mouseDelta / (vec2(1.0) + length(mouseDelta)) * (mouseRadius - mouseDist) / mouseRadius * 1.5;
+        vel += mouseDelta / (1.0 + length(mouseDelta)) * (mouseRadius - mouseDist) / mouseRadius * 1.5;
     }
 
     pos += vel * dt;
