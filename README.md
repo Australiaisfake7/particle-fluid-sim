@@ -30,7 +30,8 @@ Particle interactions use a repulsion based model and are **not** physically acc
 
 ## Running The Project
 
-> Examples require g++ with OpenGL 4.6 support
+> Examples require g++ with OpenGL 4.6 support  
+> Please ensure g++ is on your system PATH
 
 ### VSCode
 
