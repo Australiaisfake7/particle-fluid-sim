@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <array>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,7 +11,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-using std::string, std::array;
+using std::string, std::vector;
 
 const unsigned int PARTICLE_COUNT_EXPONENT = 15;
 // Must be power of 2
@@ -20,8 +19,8 @@ const size_t PARTICLE_COUNT = 1 << PARTICLE_COUNT_EXPONENT;
 const float PHYSICS_TIMESTEP = 1.0 / 120.0;
 // Simulation speed scale factor
 const float SIM_RATE = 1.0f;
-constexpr unsigned int GRID_WIDTH = 64;
-constexpr unsigned int GRID_HEIGHT = 48;
+constexpr unsigned int GRID_WIDTH = 96;
+constexpr unsigned int GRID_HEIGHT = 72;
 const glm::uvec2 GRID_SIZE = {GRID_WIDTH, GRID_HEIGHT};
 
 unsigned int currentParticleBuffer = 0;
@@ -31,7 +30,7 @@ bool hasGivenFramerateWarning = false;
 
 glm::uvec2 screenRes = glm::uvec2(800, 600);
 
-float physicsSmoothingRadius = 1.0f;
+float physicsSmoothingRadius = 0.95f;
 float visualSmoothingRadius = 0.65f;
 float particleBrightness = 0.35f;
 float mouseRadius = 4.5f;
@@ -331,7 +330,7 @@ int main()
     glGenBuffers(2, particleBuffers);
     glGenBuffers(1, &gridCellPointerBuffer);
 
-    array<Particle, PARTICLE_COUNT> particles;
+    vector<Particle> particles = vector<Particle>(PARTICLE_COUNT);
 
     srand(static_cast<unsigned int>(time(nullptr)));
     for (int i = 0; i < PARTICLE_COUNT; i++)
@@ -357,7 +356,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         double now = glfwGetTime();
-        double deltatime = now - lastFrame;
+        double deltatime = std::min(now - lastFrame, 0.25);
         lastFrame = now;
 
         dtAccumulator += deltatime * SIM_RATE;
@@ -372,10 +371,11 @@ int main()
         glClearColor(1.00f, 0.49f, 0.04f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (dtAccumulator > PHYSICS_TIMESTEP * 10)
+        dtAccumulator = std::min(dtAccumulator, double(PHYSICS_TIMESTEP * 4));
+        if (dtAccumulator > PHYSICS_TIMESTEP * 3)
         {
             if (hasGivenFramerateWarning)
-                std::cout << "Warning: Frame rate accumulator is filling, repeated messages may be an indication that the simulation is too intensive for your computer" << std::endl;
+                std::cout << "Warning: Frame rate accumulator is filling, repeated messages may be an indication that the simulation is too intensive for your computer" << '\n';
             hasGivenFramerateWarning = true;
         }
 
