@@ -8,6 +8,7 @@
 * [Highlights](#highlights)
 * [Overview](#overview)
 * [Implementation](#implementation)
+* [Benchmarks](#benchmarks)
 * [Running The Project](#running-the-project)
 * [Parameters](#parameters)
 
