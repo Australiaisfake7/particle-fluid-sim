@@ -39,7 +39,8 @@ However, one of the advantages of GPU based simulations is their parallelizabili
 This is the problem with the naive approach, $O(n^2)$ is simply too slow for real time.  
 Fortunately, there is plenty of room for improvement.
 
-> **Note**: Throughout this section, time complexity is given sequentially for the purpose of comparison. In reality, operations are done in parallel on the GPU, reducing all time complexities by a factor of $n$.
+> [!NOTE]
+> Throughout this section, time complexity is given sequentially for the purpose of comparison. In reality, operations are done in parallel on the GPU, reducing all time complexities by a factor of $n$.
 
 ### Step 1: The Grid Based Approach
 
@@ -48,7 +49,8 @@ Instead of every particle checking every other one, the screen is split up into 
 
 For a 96 by 72 grid, which is what this sim uses, and a smoothing radius less than 1, the workload per GPU thread is reduced by an average factor of 768. Overall, the time complexity of the search is reduced from $O(n^2)$ to $O(n)$ for a sufficiently sized grid, which is a huge difference.
 
-> **Note**: For a fixed sized grid like in this sim, the amount of work still scales quadratically with the number of particles. However this can be mitigated by increasing the grid size proportionally, which is trivial to do.
+> [!NOTE]
+> For a fixed sized grid like in this sim, the amount of work still scales quadratically with the number of particles. However this can be mitigated by increasing the grid size proportionally, which is trivial to do.
 
 ### Step 2: Sorting particles
 
@@ -62,7 +64,21 @@ Now that the buffer has been constructed, the indices of all the particles in a 
 
 ### Step 4: The Physics Step
 
-Now that all the prerequisite work has been done, the physics calculations can now be performed. Every GPU thread uses the buffer of grid cell pointers to get the indices of all the particles in the current cell and the neighbouring ones. Particles are stored in two separate buffers, one for reading and one for writing. These buffers are swapped physics step, preventing reading from values that were just written by a different thread. The thread then iterates over every particle and calculates their force contribution using cubic spline kernel. Once the forces have been summed, they are divided by a normalization constant, and the force is applied to the current particle's velocity, causing it to be repelled away from the nearby particles. Finally, the particle's position is updated using symplectic Euler integration to find the next position. This choice of numerical integration method allows the simulation to remain stable, unlike standard Euler integration, which adds energy to the simulation over time.
+Now that all the prerequisite work has been done, the physics calculations can now be performed. Every GPU thread uses the buffer of grid cell pointers to get the indices of all the particles in the current cell and the neighbouring ones. Particles are stored in two separate buffers, one for reading and one for writing. These buffers are swapped each physics step, preventing reading from values that were just written by a different thread. The thread then iterates over every particle and calculates their force contribution using cubic spline kernel. Once the forces have been summed, they are divided by a normalization constant, and the force is applied to the current particle's velocity, causing it to be repelled away from the nearby particles. Finally, the particle's position is updated using symplectic Euler integration to find the next position. This choice of numerical integration method allows the simulation to remain stable, unlike standard Euler integration, which adds energy to the simulation over time.
+
+## Benchmarks
+
+Taken using an RTX 3060.
+
+|Physics Framerate|Smoothing Radius|Max Particles|Sort Time|Physics Time|Total Time|
+|:---------------:|:--------------:|:-----------:|:-------:|:----------:|:--------:|
+|120fps           |<2              |$2^{18}$     |~3.85ms  |~2.85ms     |~6.7ms    |
+|120fps           |<1              |$2^{18}$     |~3.5ms   |~1.1ms      |~4.6ms    |
+|30fps            |<2              |$2^{19}$     |~7.8ms   |~11.6ms     |~19.4ms   |
+|30fps            |<1              |$2^{20}$     |~16.3ms  |~16.8ms     |~33.1ms   |
+
+> [!NOTE]
+> Cell pointer calculation time excluded as it is negligible.
 
 ## Running The Project
 
